@@ -25,7 +25,7 @@ The system automatically assigns priority (`Critical`, `High`, `Medium`, `Low`) 
 
 ---
 
-## How to Run Locally
+# How to Run Locally
 Follow these steps to set up the project on your machine.
 
 Prerequisites
