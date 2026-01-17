@@ -103,14 +103,18 @@ python server.py
 ### Step 4: Access the App
 Open your browser and navigate to: http://127.0.0.1:5000
 
+
 🚀 Future Improvements
+
 Database Migration: Move from CSV to SQLite/PostgreSQL for scalability.
 
 Email Notifications: Integrate SMTP to send email updates upon ticket resolution.
 
 Chatbot Integration: AI-based initial support response.
 
+
 👨‍💻 Contributor
 
 _Sourav Mondal_ Full Stack Developer & CS Enthusiast 
+
 [https://www.linkedin.com/in/sourav-mondal-18038a375] 
