@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Raise Ticket</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}">
+    <script src="{{ url_for('static', filename='script1.js') }}"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Tell us your Issue</h1>
+    <p>Fill out the form below.</p>
+    
+    <form method="POST" action="{{ url_for('submit_ticket') }}">
+        <label>Name</label>
+        <input type="text" name="name" required>
+
+        <label>Email</label>
+        <input type="email" name="email" required>
+
+        <label>Product Purchased</label>
+        <input type="text" name="product" required>
+
+        <label>Date of Purchase</label>
+        <input type="date" name="dop" required style="width: 100%; padding: 10px 12px; margin-bottom: 20px; border-radius: 40px; border: 1px solid #ccc;">
+
+        <label>Issue Description</label>
+        <textarea name="description" rows="5" required></textarea>
+
+        <button type="submit">Submit Ticket</button>
+    </form>
+    
+    <a href="{{ url_for('user_homepage') }}" class="back-link">&larr; Back to Dashboard</a>
+</div>
+</body>
+</html>

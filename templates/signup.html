@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}?v=2">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='images/headset.png') }}" 
+             class="logo" 
+             style="width:80px; display:block; margin:0 auto 10px;" 
+             onerror="this.style.display='none'">
+
+        <h2 style="text-align:center;">Create Account</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <p class="message {{ category }}">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('do_signup') }}" method="POST">
+            
+            <input type="text" 
+                   name="username" 
+                   placeholder="Username (Letters, Space & _)" 
+                   pattern="[a-zA-Z_ ]{3,20}" 
+                   title="Username must be 3-20 characters long. Only letters, spaces, and underscores allowed."
+                   required>
+
+            <input type="password" name="password" placeholder="Choose a Password" required>
+            
+            <button type="submit">Sign Up</button>
+        </form>
+        
+        <br>
+        <div style="text-align: center;">
+            <a href="{{ url_for('login_page') }}" class="back-link">&larr; Back to Login</a>
+        </div>
+    </div>
+</body>
+</html>

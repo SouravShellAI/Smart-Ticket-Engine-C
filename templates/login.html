@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}?v=2">
+    <script>
+        function toggleAdmin() {
+            var u = document.getElementById('userForm');
+            var a = document.getElementById('adminForm');
+            var b = document.getElementById('toggleBtn');
+            
+            if (u.style.display === "none") {
+                u.style.display = "block";
+                a.style.display = "none";
+                b.innerHTML = "Admin Login";
+            } else {
+                u.style.display = "none";
+                a.style.display = "block";
+                b.innerHTML = "User Login";
+            }
+        }
+        
+        window.onload = function() {
+            if (new URLSearchParams(window.location.search).get('role') === 'admin') {
+                toggleAdmin();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='images/headset.png') }}" 
+             class="logo" 
+             style="width:80px; display:block; margin:0 auto 20px;" 
+             onerror="this.style.display='none'">
+        
+        <h2 style="text-align:center;">Welcome</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="message {{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div id="userForm">
+            <h3 style="text-align:center;">User Login</h3>
+            <form action="/auth" method="POST">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <div style="margin-top:20px; text-align:center;">
+                <p>New here?</p>
+                <a href="/signup">
+                    <button class="btn-secondary" style="background:#48bb78;">Create Account</button>
+                </a>
+            </div>
+        </div>
+
+        <div id="adminForm" style="display:none;">
+            <h3 style="color:red; text-align: center;">Admin Access</h3>
+            <form action="/auth" method="POST">
+                <input type="hidden" name="role" value="admin"> 
+                <input type="text" name="username" placeholder="Admin Username" required>
+                <input type="password" name="password" placeholder="Admin Password" required>
+                <button type="submit" style="background:#e74c3c;">Login as Admin</button>
+            </form>
+        </div>
+        
+        <div class="toggle-container">
+            <button id="toggleBtn" onclick="toggleAdmin()">Admin Login</button>
+        </div>
+
+        <br>
+        <div style="text-align: center;">
+            <a href="{{ url_for('landing') }}" class="back-link">
+                &larr; Back to Main Menu
+            </a>
+        </div>
+
+    </div>
+</body>
+</html>
