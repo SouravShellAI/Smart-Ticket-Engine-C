@@ -1,95 +1,224 @@
+from flask import Flask, render_template, request, redirect, url_for, flash
 import csv
-from flask import Flask, request, redirect, session
-from datetime import datetime
 import os
+import time
+import re 
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = 'super_secret_key'
 
+def init_db():
+    if not os.path.exists('users.csv'):
+        with open('users.csv', 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['username', 'password']) 
+init_db()
+
+def is_valid_input(text):
+    pattern = r"^[a-zA-Z_ ]{3,20}$"
+    if not re.match(pattern, text):
+        return False
+
+    lower_text = text.lower().strip()
+
+    banned_words = [
+        "abc", "xyz", "admin", "root", "user", "guest", "test", 
+        "qwerty", "asdf", "dummy", "null", "void", "login", 
+        "signup", "support", "help", "bot", "fake"
+    ]
+
+    if lower_text in banned_words:
+        return False
+
+    if re.search(r"(.)\1{2,}", lower_text):
+        return False
+
+    return True
+
+def check_user(username, password):
+    if not os.path.exists('users.csv'): return False
+    with open('users.csv', 'r') as f:
+        reader = csv.reader(f)
+        next(reader, None)
+        for row in reader:
+            if row and row[0] == username and row[1] == password:
+                return True
+    return False
+
+def register_user(username, password):
+    if check_user(username, password): return False
+    with open('users.csv', 'a', newline='') as f:
+        csv.writer(f).writerow([username, password])
+    return True
+
+def get_next_ticket_id():
+    max_id = 1000 
+
+    if os.path.exists('customer_support_tickets_updated.csv'):
+        with open('customer_support_tickets_updated.csv', 'r') as f:
+            reader = csv.reader(f)
+            next(reader, None) 
+            for row in reader:
+                if row:
+                    try:
+                        curr_id = int(row[0])
+                        if curr_id > max_id: max_id = curr_id
+                    except: pass
+    
+    if os.path.exists('pending_tickets.csv'):
+        with open('pending_tickets.csv', 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if row:
+                    try:
+                        curr_id = int(row[0])
+                        if curr_id > max_id: max_id = curr_id
+                    except: pass
+                    
+    return max_id + 1
+
 @app.route('/')
-def home():
-    if os.path.exists('index.html'): 
-        return open('index.html', encoding='utf-8').read()
-    return "<h1>Error: index.html missing!</h1>"
+def landing(): return render_template('index.html')
 
-@app.route('/submit', methods=['POST'])
-def submit_ticket():
-    name = request.form.get('name')
-    email = request.form.get('email')
-    product = request.form.get('product')
-    issue = request.form.get('issue')
-    date = datetime.now().strftime("%Y-%m-%d")
+@app.route('/login')
+def login_page(): return render_template('login.html')
 
-    with open('pending_tickets.csv', 'a', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow([name, email, product, date, issue])
+@app.route('/signup')
+def signup_page(): return render_template('signup.html')
 
-    return f"""
-    <div style='text-align:center; font-family:sans-serif; padding:50px;'>
-        <h1 style='color:green'>✅ Ticket Submitted Successfully!</h1>
-        <p>Your issue regarding <b>{product}</b> has been sent to our System.</p>
-        <a href='/' style='background:#667eea; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;'>Submit Another</a>
-    </div>
-    """
+@app.route('/do_signup', methods=['POST'])
+def do_signup():
+    username = request.form['username']
+    password = request.form['password']
 
-@app.route('/admin', methods=['GET', 'POST'])
-def admin_login():
-    if request.method == 'POST':
-        if request.form.get('pass') == 'admin123':
-            session['logged_in'] = True
-            return redirect('/admin/dashboard')
+    if not is_valid_input(username):
+        flash("Invalid Username! No numbers or special characters allowed. Only letters (A-Z) and underscore (_).", "error")
+        return redirect(url_for('signup_page'))
+
+    if register_user(username, password):
+        flash("Account created! Please login.", "success")
+        return redirect(url_for('login_page'))
+    else:
+        flash("Username already exists!", "error")
+        return redirect(url_for('signup_page'))
+
+@app.route('/auth', methods=['POST'])
+def auth():
+    username = request.form['username']
+    password = request.form['password']
+    role = request.form.get('role', 'user')
+
+    if role == 'admin':
+        if username == "admin" and password == "admin123":
+            return redirect(url_for('admin_dashboard'))
         else:
-            return "<h1>Wrong Password! <a href='/admin'>Try Again</a></h1>"
-    return """
-    <div style='display:flex; justify-content:center; align-items:center; height:100vh; background:#f4f7f6; font-family:sans-serif;'>
-        <div style='background:white; padding:40px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.1); text-align:center;'>
-            <h2>🔒 Admin Login</h2>
-            <form method='POST'>
-                <input type='password' name='pass' placeholder='Password' style='padding:10px; width:200px; margin-bottom:10px;' required><br>
-                <button type='submit' style='padding:10px 20px; background:#2c3e50; color:white; border:none; cursor:pointer;'>Login</button>
-            </form>
-        </div>
-    </div>
-    """
+            flash("Invalid Admin Password!", "error")
+            return redirect(url_for('login_page'))
+    else:
+        if check_user(username, password):
+            return redirect(url_for('user_homepage'))
+        else:
+            flash("Invalid Username or Password!", "error")
+            return redirect(url_for('login_page'))
 
-@app.route('/admin/dashboard')
+@app.route('/home')
+def user_homepage(): return render_template('homepage.html')
+
+@app.route('/index1')
+def ticket_form(): return render_template('index1.html')
+
+@app.route('/submit_ticket', methods=['POST'])
+def submit_ticket():
+    name = request.form['name']
+    email = request.form['email']
+    product = request.form['product']
+    dop = request.form['dop'] 
+    desc = request.form['description']
+
+    new_ticket_id = get_next_ticket_id()
+
+    with open('pending_tickets.csv', 'a', newline='') as f:
+        csv.writer(f).writerow([new_ticket_id, name, email, product, dop, desc])
+
+    return render_template('homepage.html', 
+                           message=f"Success! Your Ticket ID is: {new_ticket_id}", 
+                           new_id=new_ticket_id)
+
+@app.route('/status.html')
+def status_page(): return render_template('status.html')
+
+@app.route('/check_status', methods=['POST'])
+def check_status():
+    ticket_id = request.form.get('ticket_id').strip()
+    email_input = request.form.get('email').strip().lower()
+    
+    found_status = None
+    found_customer = None
+    found_issue = None
+    found_dop = None          
+    found_resolve_time = None
+    error_msg = None
+
+    def search_csv(filename, db_type):
+        if not os.path.exists(filename): return None
+        with open(filename, 'r') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                
+                if len(row) < 6: continue 
+                
+                csv_id = row[0].strip()
+                csv_email = row[2].strip().lower()
+
+                if csv_id == ticket_id:
+                    if csv_email == email_input:
+                        return row
+                    else:
+                        return "UNAUTHORIZED"
+        return None
+
+    result = search_csv('customer_support_tickets_updated.csv', 'active')
+    if result == "UNAUTHORIZED":
+        error_msg = "Security Error: Ticket ID exists but Email does not match!"
+    elif result:
+        found_status = "Open"
+        found_customer = result[1]
+        found_dop = result[4]   
+        found_issue = result[5]   
+
+    if not found_status and not error_msg:
+        result = search_csv('resolved_tickets.csv', 'resolved')
+        if result == "UNAUTHORIZED":
+            error_msg = "Security Error: Ticket ID exists but Email does not match!"
+        elif result:
+            found_status = "Resolved"
+            found_customer = result[1]
+            found_dop = result[4]     
+            found_issue = result[5]    
+            found_resolve_time = result[9] if len(result) > 9 else "N/A"
+
+    if not found_status and not error_msg:
+        error_msg = "Ticket ID not found in our database."
+
+    return render_template('status.html', 
+                           ticket_id=ticket_id if not error_msg else None, 
+                           status=found_status, 
+                           customer=found_customer, 
+                           dop=found_dop, 
+                           issue=found_issue, 
+                           resolve_time=found_resolve_time, 
+                           error=error_msg)
+
+@app.route('/admin')
 def admin_dashboard():
-    if not session.get('logged_in'): return redirect('/admin')
-    
-    content = "<h2 style='text-align:center;'>⏳ Waiting for Backend...</h2><script>setTimeout(function(){location.reload()}, 2000);</script>"
-    
-    if os.path.exists('admin_view.html'): 
-        try:
-            with open('admin_view.html', 'r', encoding='utf-8') as f:
-                content = f.read()
-        except Exception as e:
-            print("Error reading file:", e)
+    if os.path.exists('templates/admin_view.html'): return render_template('admin_view.html')
+    return "<h3>Dashboard loading... refresh shortly.</h3>"
 
-    from flask import make_response
-    response = make_response(content)
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    
-    return response
-
-@app.route('/resolve/<id>')
-def resolve_ticket(id):
-    if not session.get('logged_in'): return redirect('/admin')
-
-    with open('admin_commands.txt', 'a', encoding='utf-8') as f:
-        f.write(f"RESOLVE,{id}\n")
-        f.flush()
-        os.fsync(f.fileno()) 
-        
-    print(f"DEBUG: Written command RESOLVE,{id} to file.") 
-    return "<script>window.location.href = '/admin/dashboard';</script>"
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect('/admin')
+@app.route('/resolve/<int:ticket_id>')
+def resolve_ticket(ticket_id):
+    with open('admin_commands.txt', 'w') as f: f.write(f"RESOLVE {ticket_id}")
+    time.sleep(1)
+    return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
-    print("🌐 Web Server Running (Manual Mode)")
-    app.run(port=5000)
+    app.run(debug=True, port=5000)
