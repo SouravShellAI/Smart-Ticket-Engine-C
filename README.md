@@ -1,4 +1,4 @@
-# Smart-Tiket-Engine-C
+# Smart-Ticket-Engine-C
 
 > A high-performance Customer Support Ticketing System that bridges the gap between **low-level efficiency (C)** and **high-level web accessibility (Python/Flask)**. Designed to simulate real-world e-commerce support workflows with priority-based scheduling.
 
@@ -11,8 +11,6 @@
 - [Technical Highlights & Data Structures](#-technical-highlights--data-structures)
 - [Security Measures](#-security-measures)
 - [Installation & Setup](#-installation--setup)
-- [Project Structure](#-project-structure)
-- [Screenshots](#-screenshots)
 
 ---
 
@@ -105,23 +103,6 @@ python server.py
 ### Step 4: Access the App
 Open your browser and navigate to: http://127.0.0.1:5000
 
-📂 Project Structure
-
-├── static/
-│   ├── style1.css                         # Responsive styling 
-│   └── images/                            # Assets and Logos
-├── templates/
-│   ├── index.html                         # Landing Page
-│   ├── login.html                         # Secure Login/Signup
-│   ├── homepage.html                      # User Dashboard
-│   ├── status.html                        # Ticket Tracking Page
-│   └── admin_view.html                    # Auto-generated Admin Dashboard
-├── main.c                                 # CORE LOGIC: Priority Queue & Database Management
-├── server.py                              # WEB SERVER: Flask Routes & Validation
-├── users.csv                              # User Credentials Database
-├── customer_support_tickets_updated.csv   # Active Ticket Database
-└── README.md                              # Documentation
-
 🚀 Future Improvements
 Database Migration: Move from CSV to SQLite/PostgreSQL for scalability.
 
@@ -130,4 +111,6 @@ Email Notifications: Integrate SMTP to send email updates upon ticket resolution
 Chatbot Integration: AI-based initial support response.
 
 👨‍💻 Contributor
-_Sourav Mondal_ Full Stack Developer & CS Enthusiast [https://www.linkedin.com/in/sourav-mondal-18038a375] 
+
+_Sourav Mondal_ Full Stack Developer & CS Enthusiast 
+[https://www.linkedin.com/in/sourav-mondal-18038a375] 
